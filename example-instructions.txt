@@ -1,6 +1,6 @@
-Start a new chat
-Send a hello world message in the chat
-Go back to the main page
-Go to the agent login and login using a@b.com and the pass 123456
-reply "ok" to the first message
+login as maker
+create a transfer of 100 to demo-user 
+logout
+login as checker
+reject the most recent transfer
 exit

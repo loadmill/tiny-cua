@@ -1,6 +1,5 @@
 import OpenAI from "openai";
 import dotenv from "dotenv";
-import { display_width, display_height } from "./browser.js";
 
 dotenv.config();
 
@@ -34,17 +33,10 @@ export async function sendCUARequest({
   }
 
   return openai.responses.create({
-    model: "computer-use-preview",
+    model: "gpt-5.4",
     previous_response_id: previousResponseId || undefined,
-    tools: [{
-      type: "computer_use_preview",
-      display_width,
-      display_height,
-      environment: "browser",
-    }],
+    tools: [{ type: "computer" }],
     input,
     store: true,
-    reasoning: { generate_summary: "concise" },
-    truncation: "auto",
   });
 }

@@ -1,21 +1,17 @@
 ![tiny-CUA logo](https://github.com/user-attachments/assets/de9ff2ea-8e42-4c9c-bced-99537352360f)
 
-A minimal implementation of a Computer-Using Agent on top of OpenAI's computer use model, using Node.js and Playwright. It's only four files and has fewer than 350 lines of code.
+A minimal implementation of a Computer-Using Agent on top of OpenAI's `gpt-5.4` computer-use capabilities, using Node.js and Playwright. It's only four files and has fewer than 350 lines of code.
 
 https://github.com/user-attachments/assets/7d8b8e19-edf4-4a58-a4ad-00988bb2be07
 
 ## Goal
 Automate web interactions in a browser with Node.js, Playwright, and OpenAI's computer use API. tiny-CUA can click, type, scroll, and navigate by analyzing screenshots and receiving AI-generated actions.
 
-> [!NOTE]  
-> Your OpenAI platform account must be **Tier 3** to access the computer-use model.  
-> More info: https://platform.openai.com/docs/models/computer-use-preview
-
 ## How It Works
 1. The agent launches a browser using Playwright.  
 2. It navigates to a provided URL.  
 3. The user enters commands in the terminal (or the agent reads them from a text file if specified).  
-4. The user input, along with a screenshot, is sent to the OpenAI computer-use model.  
+4. The user input, along with a screenshot, is sent to OpenAI's model set for computer use.  
 5. OpenAI manages the conversation context automatically.  
 6. If the API returns actions (for example, click or type), the agent performs them.  
 7. After each action, the agent takes another screenshot and sends it to OpenAI for further steps.  
@@ -52,7 +48,7 @@ Automate web interactions in a browser with Node.js, Playwright, and OpenAI's co
 
 #### Example
 ```sh
-node index.js --url=https://loadmill-center-12baa23ad9e4.herokuapp.com --save-har --instructions=example-instructions.txt
+node index.js --url=http://bank-demo.loadmill.com/ --save-har --instructions=example-instructions.txt
 ```
 
 Sample `example-instructions.txt`:
@@ -78,7 +74,7 @@ When run, each line is passed to the agent as if you typed it in. If you include
   - Contains functions to execute actions on the browser page, including clicking, dragging, scrolling, typing, and more  
 
 - **openai.js**  
-  - Builds requests to the CUA API with messages, screenshots, and safety checks  
+  - Builds requests to the OpenAI API with messages, screenshots, and safety checks  
 
 - **browser.js**  
   - Uses Playwright to launch Chromium with a fixed window size  

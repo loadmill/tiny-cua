@@ -1,7 +1,7 @@
 import minimist from "minimist";
 import readline from "readline";
 import { readFile } from "fs/promises";
-import { launchBrowser } from "./browser.js";
+import { launchBrowser, display_width, display_height } from "./browser.js";
 import { sendCUARequest } from "./openai.js";
 import { handleModelAction, getScreenshotAsBase64 } from "./actions.js";
 
@@ -14,7 +14,7 @@ function getOSName() {
 
 const osName = getOSName();
 const args = minimist(process.argv.slice(2));
-const startUrl = args["url"] || "https://loadmill-center-12baa23ad9e4.herokuapp.com/";
+const startUrl = args["url"] || "http://bank-demo.loadmill.com/";
 const saveHar = args["save-har"] === true;
 const instructionsFile = args.instructions || args.i || null;
 
@@ -40,21 +40,20 @@ async function loadInstructionsFile(instructionsFile) {
 async function runFullTurn(page, response) {
   let newResponseId = response.id;
 
-  // The model can return multiple computer calls in one response
   while (true) {
     const items = response.output || [];
-    const actions = items.filter((item) => item.type === "computer_call");
+    const computerCalls = items.filter((item) => item.type === "computer_call");
 
     // Print reasoning or assistant messages
     for (const item of items) {
       if (item.type === "reasoning") {
-        for (const entry of item.summary) {
+        for (const entry of item.summary || []) {
           if (entry.type === "summary_text") {
             console.log("[Reasoning]", entry.text);
           }
         }
       } else if (item.type === "message") {
-        const textPart = item.content.find((c) => c.type === "output_text");
+        const textPart = item.content?.find((c) => c.type === "output_text");
         if (textPart) {
           console.log("[Message]", textPart.text);
         }
@@ -64,22 +63,26 @@ async function runFullTurn(page, response) {
     }
 
     // If there are no more actions, we're done for this turn
-    if (actions.length === 0) break;
+    if (computerCalls.length === 0) break;
 
-    // Process each model action, then respond with a new screenshot
-    for (const { action, call_id, pending_safety_checks } of actions) {
+    const currentCall = computerCalls.at(-1);
+    const actions = currentCall.actions || (currentCall.action ? [currentCall.action] : []);
+
+    for (const action of actions) {
       await handleModelAction(page, action);
-      const screenshotBase64 = await getScreenshotAsBase64(page);
-
-      response = await sendCUARequest({
-        messages: [],
-        screenshotBase64,
-        previousResponseId: newResponseId,
-        callId: call_id,
-        pendingSafetyChecks: pending_safety_checks || [],
-      });
-      newResponseId = response.id;
+      await page.waitForTimeout(300); // Small delay to allow UI to update
     }
+
+    const screenshotBase64 = await getScreenshotAsBase64(page);
+
+    response = await sendCUARequest({
+      messages: [],
+      screenshotBase64,
+      previousResponseId: newResponseId,
+      callId: currentCall.call_id,
+      pendingSafetyChecks: currentCall.pending_safety_checks || [],
+    });
+    newResponseId = response.id;
   }
 
   return newResponseId;
@@ -100,7 +103,9 @@ async function main() {
   Never ask for confirmation. If you think an action needs to be performed, execute it immediately. 
   Only stop for questions if you don't have enough information to complete the action.
   If unsure, take a screenshot once before proceeding.  
-  Do not repeat actions that have no visible effect.  
+  Do not repeat actions that have no visible effect, wait to see if the page updates.
+  
+  The browser display size is ${display_width}x${display_height} pixels.
 
   Available browser actions:
   click, double_click, move, drag, scroll, type, keypress, wait, goto, back, forward, screenshot.

@@ -2,7 +2,7 @@ import { chromium } from "playwright";
 import path from "path";
 
 export const display_width = 800;
-export const display_height = 600;
+export const display_height = 800;
 
 export async function launchBrowser(saveHar) {
   const browser = await chromium.launch({

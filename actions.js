@@ -1,5 +1,6 @@
 const keyMap = {
   ENTER: "Enter",
+  ESC: "Escape",
   ARROWLEFT: "ArrowLeft",
   ARROWRIGHT: "ArrowRight",
   ARROWUP: "ArrowUp",
